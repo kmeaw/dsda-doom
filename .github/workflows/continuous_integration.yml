@@ -5,6 +5,9 @@ on: [push, pull_request, workflow_dispatch]
 env:
   VCPKG_BINARY_SOURCES: "clear;nuget,GitHub,readwrite"
 
+permissions:
+  contents: write
+
 jobs:
   build:
     name: ${{ matrix.config.name }}
@@ -61,6 +64,7 @@ jobs:
         with:
           msystem: ${{ matrix.config.msystem }}
           install: >-
+            git
             ${{ matrix.config.msys-env }}-gcc
             ${{ matrix.config.msys-env }}-cmake
             ${{ matrix.config.msys-env }}-ninja
@@ -74,6 +78,7 @@ jobs:
             ${{ matrix.config.msys-env }}-SDL2_image
             ${{ matrix.config.msys-env }}-SDL2_mixer
             ${{ matrix.config.msys-env }}-libzip
+            ${{ matrix.config.msys-env }}-github-cli
 
       - name: Setup vcpkg (MSVC)
         if: ${{ matrix.config.vcpkg_triplet }}
@@ -151,3 +156,12 @@ jobs:
 
       - name: Build
         run: cmake --build build --config ${{ matrix.config.build_type }}
+
+      - name: Release
+        if: matrix.config.shell == 'msys2 {0}'
+        env:
+          GITHUB_TOKEN: ${{ github.TOKEN }}
+        run: |
+          cd build
+          cpack -G ZIP -C ${{ matrix.config.build_type }}
+          gh release create v0.27.5 dsda-doom-0.27.5-win64.zip
