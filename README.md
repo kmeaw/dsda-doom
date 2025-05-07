@@ -1,4 +1,6 @@
 # dsda-doom v0.29.0
+P_Random is effectively disabled.
+
 This is a successor of prboom+ with many new features, including:
 - Heretic, Hexen, MBF21, Doom-in-Hexen, UDMF, and MAPINFO support
 - In-game console and scripting
