@@ -1,9 +1,12 @@
 name: Continuous Integration
 
-on: [push, pull_request]
+on: [push, pull_request, workflow_dispatch]
 
 env:
   VCPKG_BINARY_SOURCES: "clear;files,${{ github.workspace }}/vcpkg_cache,readwrite"
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -79,6 +82,7 @@ jobs:
         with:
           msystem: ${{ matrix.config.msystem }}
           install: >-
+            git
             ${{ matrix.config.msys-env }}-gcc
             ${{ matrix.config.msys-env }}-cmake
             ${{ matrix.config.msys-env }}-ninja
@@ -92,6 +96,7 @@ jobs:
             ${{ matrix.config.msys-env }}-SDL2_image
             ${{ matrix.config.msys-env }}-SDL2_mixer
             ${{ matrix.config.msys-env }}-libzip
+            ${{ matrix.config.msys-env }}-github-cli
 
       - name: Install Dependencies (Linux)
         if: runner.os == 'Linux'
@@ -116,7 +121,8 @@ jobs:
             libzip-dev \
             zipcmp \
             zipmerge \
-            ziptool
+            ziptool \
+            fluidsynth
 
       - name: Install Dependencies (macOS)
         if: runner.os == 'macOS'
