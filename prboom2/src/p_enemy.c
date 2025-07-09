@@ -362,6 +362,8 @@ static dboolean P_Move(mobj_t *actor, dboolean dropoff) /* killough 9/12/98 */
     return true;
   if (actor->movedir == DI_NODIR)
     return false;
+  if (skill_info.flags & SI_GLUE_MONSTERS)
+    return false;  // maybe true would be better?
 
 #ifdef RANGECHECK
   if ((unsigned)actor->movedir >= 8)

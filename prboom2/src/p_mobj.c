@@ -1396,6 +1396,9 @@ void P_MobjThinker (mobj_t* mobj)
   if (map_format.mobj_in_special_sector(mobj))
     return;
 
+  if (((mobj->flags & MF_COUNTKILL) || mobj->type == MT_SKULL) && (skill_info.flags & SI_GHOST_MONSTERS))
+    return;
+
   // cycle through states,
   // calling action functions at transitions
   if (mobj->tics != -1)
@@ -1443,7 +1446,6 @@ void P_MobjThinker (mobj_t* mobj)
     P_NightmareRespawn (mobj);
   }
 }
-
 
 // Certain functions assume that a mobj_t pointer is non-NULL,
 // causing a crash in some situations where it is NULL.  Vanilla

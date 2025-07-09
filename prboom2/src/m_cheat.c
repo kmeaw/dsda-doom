@@ -129,6 +129,16 @@ static void cheat_class();
 static void cheat_init();
 static void cheat_script();
 
+// trainer
+static void cheat_kmdouble();
+static void cheat_kmfast();
+static void cheat_kmfreeze();
+static void cheat_kmrespawn();
+static void cheat_kmnmresp();
+static void cheat_kmitems();
+static void cheat_kmclip();
+static void cheat_kmglue();
+
 //-----------------------------------------------------------------------------
 //
 // List of cheat codes, functions, and special argument indicators.
@@ -253,6 +263,16 @@ cheatseq_t cheat[] = {
   CHEAT("puke", NULL, not_demo, cheat_script, -2, false),
   CHEAT("mapsco", NULL, cht_always, cheat_ddt, 0, true),
   CHEAT("deliverance", NULL, not_demo, cheat_chicken, 0, false),
+
+  // trainer
+  CHEAT("kmdouble",  NULL, not_demo, cheat_kmdouble,  0, false),
+  CHEAT("kmfreeze",  NULL, not_demo, cheat_kmfreeze,  0, false),
+  CHEAT("kmfast",    NULL, not_demo, cheat_kmfast,    0, false),
+  CHEAT("kmrespawn", NULL, not_demo, cheat_kmrespawn, 0, false),
+  CHEAT("kmnmresp",  NULL, not_demo, cheat_kmnmresp,  0, false),
+  CHEAT("kmitems",   NULL, not_demo, cheat_kmitems,   0, false),
+  CHEAT("kmclip",    NULL, not_demo, cheat_kmclip,    0, false),
+  CHEAT("kmglue",    NULL, not_demo, cheat_kmglue,    0, false),
 
   // end-of-list marker
   {NULL}
@@ -1370,5 +1390,131 @@ static void cheat_script(char buf[3])
   {
     snprintf(textBuffer, sizeof(textBuffer), "RUNNING SCRIPT %.2d", script);
     P_SetMessage(plyr, textBuffer, true);
+  }
+}
+
+static void cheat_kmdouble(void)
+{
+  if (skill_info.ammo_factor == 1 * FRACUNIT) {
+    skill_info.ammo_factor = 2 * FRACUNIT;
+    dsda_AddMessage("double ammo pickups are ON");
+  } else {
+    skill_info.ammo_factor = 1 * FRACUNIT;
+    dsda_AddMessage("double ammo pickups are OFF");
+  }
+}
+
+static void cheat_kmfreeze(void)
+{
+  if (skill_info.flags & SI_GHOST_MONSTERS) {
+    skill_info.flags &= ~SI_GHOST_MONSTERS;
+    dsda_AddMessage("monsters are thawed");
+  } else {
+    skill_info.flags |=  SI_GHOST_MONSTERS;
+    dsda_AddMessage("monsters are frozen");
+  }
+}
+
+// Heretic missiles
+extern struct {
+	int type;
+	int speed[2];
+} MonsterMissileInfo[];
+
+static void cheat_kmfast(void)
+{
+  thinker_t *currentthinker = NULL;
+  int i;
+  int fast_pending = !(skill_info.flags & SI_FAST_MONSTERS);
+
+  P_MapStart();
+  while ((currentthinker = P_NextThinker(currentthinker,th_all)) != NULL)
+    if (currentthinker->function == P_MobjThinker &&
+        (((mobj_t *) currentthinker)->flags & MF_COUNTKILL ||
+         ((mobj_t *) currentthinker)->type == MT_SKULL))
+      {
+        ((mobj_t *) currentthinker)->tics = 1;
+      }
+
+  if (heretic)
+  {
+    for (i = 0; MonsterMissileInfo[i].type != -1; i++)
+    {
+      mobjinfo[MonsterMissileInfo[i].type].speed =
+        MonsterMissileInfo[i].speed[fast_pending] << FRACBITS;
+    }
+  } else {
+    for (i = 0; i < num_mobj_types; ++i)
+      if (mobjinfo[i].altspeed != NO_ALTSPEED)
+      {
+        int swap = mobjinfo[i].speed;
+        mobjinfo[i].speed = mobjinfo[i].altspeed;
+        mobjinfo[i].altspeed = swap;
+      }
+  }
+
+  P_MapEnd();
+
+  if (skill_info.flags & SI_FAST_MONSTERS) {
+    skill_info.flags &= ~(SI_FAST_MONSTERS | SI_INSTANT_REACTION);
+    dsda_AddMessage("fast monsters and instant reaction are OFF");
+  } else {
+    skill_info.flags |=  (SI_FAST_MONSTERS | SI_INSTANT_REACTION);
+    dsda_AddMessage("fast monsters and instant reaction are ON");
+  }
+}
+
+static void cheat_kmrespawn(void)
+{
+  if (skill_info.flags & SI_PLAYER_RESPAWN) {
+    skill_info.flags &= ~SI_PLAYER_RESPAWN;
+    dsda_AddMessage("player respawn is OFF");
+  } else {
+    skill_info.flags |=  SI_PLAYER_RESPAWN;
+    dsda_AddMessage("player respawn is ON");
+  }
+}
+
+static void cheat_kmnmresp(void)
+{
+  if (skill_info.respawn_time) {
+    skill_info.respawn_time = 0;
+    dsda_AddMessage("monster respawn is OFF");
+  } else {
+    skill_info.respawn_time = 12;
+    dsda_AddMessage("monster respawn is ON");
+  }
+}
+
+static void cheat_kmitems(void)
+{
+  if (skill_info.flags & SI_GHOST_ITEMS) {
+    skill_info.flags &= ~SI_GHOST_ITEMS;
+    dsda_AddMessage("ghost items are OFF");
+  } else {
+    skill_info.flags |=  SI_GHOST_ITEMS;
+    dsda_AddMessage("ghost items are ON");
+  }
+}
+
+static void cheat_kmclip(void)
+{
+  if (skill_info.flags & SI_NOCLIP) {
+    skill_info.flags &= ~SI_NOCLIP;
+    dsda_AddMessage("item clipping is ON");
+  } else {
+    skill_info.flags |=  SI_NOCLIP;
+    dsda_AddMessage("item clipping is OFF");
+  }
+}
+
+static void cheat_kmglue(void)
+{
+  if (skill_info.flags & SI_GLUE_MONSTERS) {
+    skill_info.flags &= ~SI_GLUE_MONSTERS;
+    dsda_AddMessage("monsters are free");
+  } else {
+    skill_info.flags |=  SI_GLUE_MONSTERS;
+    dsda_AddMessage("monsters are glued");
   }
 }

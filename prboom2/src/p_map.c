@@ -57,6 +57,7 @@
 #include "dsda/excmd.h"
 #include "dsda/map_format.h"
 #include "dsda/mapinfo.h"
+#include "dsda/skill_info.h"
 
 #include "heretic/def.h"
 
@@ -708,7 +709,11 @@ static dboolean PIT_CheckThing(mobj_t *thing) // killough 3/26/98: make static
   int damage;
 
   // killough 11/98: add touchy things
+  if (skill_info.flags & SI_NOCLIP)
+    return true;
   if (!(thing->flags & (MF_SOLID|MF_SPECIAL|MF_SHOOTABLE|MF_TOUCHY)))
+    return true;
+  if ((skill_info.flags & SI_GHOST_MONSTERS) && ((thing->flags & MF_COUNTKILL) || (thing->type == MT_SKULL)))
     return true;
 
   blockdist = thing->radius + tmthing->radius;
@@ -1148,8 +1153,14 @@ static dboolean PIT_CheckThing(mobj_t *thing) // killough 3/26/98: make static
   if (thing->flags & MF_SPECIAL)
   {
     uint64_t solid = thing->flags & MF_SOLID;
-    if (tmthing->flags & MF_PICKUP) // hexen_note: can probably use tmflags here?
+    if (tmthing->flags & MF_PICKUP) { // hexen_note: can probably use tmflags here?
       P_TouchSpecialThing(thing, tmthing); // can remove thing
+      if (skill_info.flags & SI_GHOST_ITEMS) {
+        sector_t * sec = R_PointInSector (thing->x, thing->y);
+        thing = P_SpawnMobj (thing->x, thing->y, sec->floorheight , MT_IFOG);
+        thing->tics = -1;
+      }
+    }
     return !solid;
   }
 
