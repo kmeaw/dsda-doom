@@ -1155,12 +1155,8 @@ static void M_SaveSelect(int choice)
 
   saveSlot = choice;
   strcpy(saveOldString,savegamestrings[choice]);
-  if (!strcmp(savegamestrings[choice],s_EMPTYSTRING) || // Ty 03/27/98 - externalized
-      IsMapName(savegamestrings[choice]))
-  {
-    snprintf(savegamestrings[choice], SAVESTRINGSIZE, "%s", dsda_MapLumpName(gameepisode, gamemap));
-    savegamestrings[choice][SAVESTRINGSIZE - 1] = 0;
-  }
+  if (!strcmp(savegamestrings[choice],s_EMPTYSTRING)) // Ty 03/27/98 - externalized
+    savegamestrings[choice][0] = 0;
   saveCharIndex = strlen(savegamestrings[choice]);
 }
 
@@ -5738,14 +5734,7 @@ static dboolean M_SaveResponder(int ch, int action, event_t* ev)
     {
       if (saveCharIndex > 0)
       {
-        if (!strcmp(savegamestrings[saveSlot], dsda_MapLumpName(gameepisode, gamemap)))
-        {
-          saveCharIndex = 0;
-        }
-        else
-        {
-          saveCharIndex--;
-        }
+        saveCharIndex--;
         savegamestrings[saveSlot][saveCharIndex] = 0;
       }
     }
